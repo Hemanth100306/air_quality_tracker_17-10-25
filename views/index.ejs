@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Live Air Quality — <%= process.env.CITY || 'City' %></title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+body { font-family: Arial; background:#f6f8fb; padding:20px; }
+header { text-align:center; margin-bottom:20px; }
+table { width:100%; max-width:900px; margin:auto; border-collapse:collapse; }
+th, td { padding:8px; border:1px solid #ddd; text-align:left; }
+th { background:#2a9df4; color:white; }
+.small { font-size:0.9rem; color:#666; }
+#status { text-align:center; margin-top:10px; }
+</style>
+</head>
+<body>
+<header>
+<h1>🌫 Live Air Quality — <%= process.env.CITY || 'City' %></h1>
+<p class="small">Data from OpenAQ · Auto-refresh every 20s</p>
+</header>
+<table id="aq-table">
+<thead><tr><th>Location</th><th>Parameter</th><th>Value</th><th>Unit</th><th>Last Updated</th></tr></thead>
+<tbody></tbody>
+</table>
+<div id="status"></div>
+<script src="/script.js"></script>
+</body>
+</html>
