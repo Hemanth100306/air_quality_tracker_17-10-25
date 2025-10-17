@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const axios = require("axios");
 const cron = require("node-cron");
 const path = require("path");
+const Measurement = require("./models/Measurement");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -14,27 +15,25 @@ const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
 const CITY = process.env.CITY || "Hyderabad";
 const COUNTRY = process.env.COUNTRY || "IN";
-
-// Use your OpenWeatherMap API key here
 const API_KEY = process.env.API_KEY;
-// default key from your account
-// Coordinates for Hyderabad
+
+// Hyderabad coordinates
 const LAT = 17.3850;
 const LON = 78.4867;
 
-// Connect to MongoDB
+// MongoDB connection
 mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => { console.error("Mongo connect error:", err); process.exit(1); });
 
-// Fetch air quality data from OpenWeatherMap
+// Fetch air quality from OpenWeatherMap
 async function fetchAirQuality() {
   try {
     const url = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${LAT}&lon=${LON}&appid=${API_KEY}`;
     const res = await axios.get(url);
     const data = res.data.list[0]; // latest measurement
-    const pollutants = data.components; // pm2_5, pm10, no2, so2, etc.
-    
+    const pollutants = data.components;
+
     for (const [param, value] of Object.entries(pollutants)) {
       const doc = {
         location: CITY,
@@ -45,13 +44,12 @@ async function fetchAirQuality() {
         unit: "µg/m3",
         lastUpdated: new Date()
       };
-      try {
-        await Measurement.findOneAndUpdate(
-          { location: doc.location, parameter: doc.parameter, lastUpdated: doc.lastUpdated },
-          { $setOnInsert: doc },
-          { upsert: true, setDefaultsOnInsert: true }
-        );
-      } catch {}
+      // Upsert without lastUpdated filter to ensure insertion
+      await Measurement.updateOne(
+        { location: doc.location, parameter: doc.parameter },
+        { $set: doc },
+        { upsert: true }
+      );
     }
     console.log("✅ Fetch complete:", new Date().toLocaleTimeString());
   } catch (err) {
@@ -62,7 +60,7 @@ async function fetchAirQuality() {
 // Cron job: every 2 minutes
 cron.schedule("*/2 * * * *", fetchAirQuality);
 
-// API endpoint to get latest measurements
+// API endpoint
 app.get("/api/latest", async (req, res) => {
   try {
     const latest = await Measurement.aggregate([

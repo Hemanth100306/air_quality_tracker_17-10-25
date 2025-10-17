@@ -1,20 +1,49 @@
-async function loadData() {
+async function fetchAirQuality() {
   try {
     const res = await fetch("/api/latest");
     const data = await res.json();
-    const tbody = document.querySelector("#aq-table tbody");
-    tbody.innerHTML = "";
-    if(!data.ok||!data.results){ document.getElementById("status").innerText="No data"; return; }
-    data.results.forEach(r=>{
-      const tr=document.createElement("tr");
-      tr.innerHTML=`<td>${r.location}<div class="small">${r.city}, ${r.country}</div></td>
-      <td>${r.parameter}</td>
-      <td>${r.value!==null?r.value:"-"}</td>
-      <td>${r.unit||""}</td>
-      <td>${r.lastUpdated?new Date(r.lastUpdated).toLocaleString():"-"}</td>`;
-      tbody.appendChild(tr);
+    const table = document.getElementById("aq-table");
+    table.innerHTML = "";
+
+    data.results.forEach(item => {
+      const tr = document.createElement("tr");
+
+      const location = `${item.city}, ${item.country}`;
+      const value = parseFloat(item.value.toFixed(2));
+      const lastUpdated = new Date(item.lastUpdated).toLocaleTimeString();
+
+      tr.innerHTML = `
+        <td>${location}</td>
+        <td>${item.parameter.toUpperCase()}</td>
+        <td>${value}</td>
+        <td>${item.unit}</td>
+        <td>${lastUpdated}</td>
+      `;
+
+      // Highlight high pollutants
+      if (
+        (item.parameter === "pm2_5" && value > 35) ||
+        (item.parameter === "pm10" && value > 50) ||
+        (item.parameter === "co" && value > 100) ||
+        (item.parameter === "no2" && value > 40) ||
+        (item.parameter === "o3" && value > 100)
+      ) {
+        tr.classList.add("high");
+      }
+
+      table.appendChild(tr);
     });
-    document.getElementById("status").innerText=`Last refresh: ${new Date().toLocaleTimeString()}`;
-  } catch { document.getElementById("status").innerText="Error"; }
+
+    // Last refresh timestamp
+    const lastRefresh = new Date();
+    document.getElementById("last-refresh").textContent = `Last refresh: ${lastRefresh.toLocaleTimeString()}`;
+  } catch (err) {
+    console.error("Error fetching air quality:", err);
+  }
 }
-loadData(); setInterval(loadData,20000);
+
+// Initial fetch
+fetchAirQuality();
+
+// Auto-refresh every 20s
+setInterval(fetchAirQuality, 20000);

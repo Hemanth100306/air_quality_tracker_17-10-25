@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌫 Live Air Quality — Hyderabad</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🌫 Live Air Quality — Hyderabad</h1>
+    <p>Data from OpenWeatherMap · Auto-refresh every 20s</p>
+    <p id="last-refresh"></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Location</th>
+          <th>Parameter</th>
+          <th>Value</th>
+          <th>Unit</th>
+          <th>Last Updated</th>
+        </tr>
+      </thead>
+      <tbody id="aq-table">
+        <!-- Data goes here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
